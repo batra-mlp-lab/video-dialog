@@ -39,6 +39,7 @@ class DynamicRNN(nn.Module):
             assert hx[0].size(0) == self.rnn_model.num_layers
         else:
             hx = None
+        self.rnn_model.flatten_parameters()
         _, (h_n, c_n) = self.rnn_model(packed_seq_input, hx)
 
         rnn_output = h_n[-1].index_select(dim=0, index=bwd_order)
@@ -46,7 +47,8 @@ class DynamicRNN(nn.Module):
 
     @staticmethod
     def _get_sorted_order(lens):
-        sorted_len, fwd_order = torch.sort(lens.contiguous().view(-1), 0, descending=True)
+        sorted_len, fwd_order = torch.sort(
+            lens.contiguous().view(-1), 0, descending=True)
         _, bwd_order = torch.sort(fwd_order)
         if isinstance(sorted_len, Variable):
             sorted_len = sorted_len.data
